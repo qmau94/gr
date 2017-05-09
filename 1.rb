@@ -1,6 +1,6 @@
 require 'nbayes'
-TRAIN="train/train05097"
-TEST="train/train05097"
+TRAIN="train/train05092"
+TEST="test1"
 ALL=""
 
 
@@ -32,4 +32,3 @@ file.each do |line|
 end
 
 p i.to_f/lines.to_f * 100
-

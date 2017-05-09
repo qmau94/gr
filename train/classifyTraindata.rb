@@ -4,8 +4,8 @@ require 'open-uri'
 solr = RSolr.connect :url => 'http://master:8983/solr/collection1/'
 print "Category:"
 category=gets.chomp.to_s
-file_name="#{category}_train_#{Time.now.to_i}"
-f=File.open(file_name, 'w')
+file_name="#{category}/#{category}.csv"
+f=File.open(file_name, 'a')
 while 1 do
   print "Id:"
   id=gets.chomp.to_s
