@@ -1,0 +1,20 @@
+require 'nbayes'
+
+nbayes = NBayes::Base.new
+file=IO.readlines('tweets-train.tsv')
+file.each do |line|
+  data=line.split("\t")
+  sentence=data[2].to_s
+  p sentence.split(/\s+/)
+  nbayes.train(sentence.split(/\s+/), data[0].to_s)
+end
+
+doc=IO.readlines('tweets-to-classify.tsv')
+doc.each do |line|
+  data=line.split("\t"
+  sentence=data[1].to_s
+  tokens=sentence.split(/\s+/)
+  result = nbayes.classify(tokens)
+  p result.max_class
+  p result
+end
