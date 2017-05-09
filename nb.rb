@@ -1,6 +1,6 @@
 require 'nbayes'
-TRAIN="train/train05097"
-TEST="train/train05097"
+TRAIN="train/train_data/train_data.csv"
+TEST="train/test_data/test_data.csv"
 ALL=""
 
 
