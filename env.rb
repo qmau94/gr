@@ -4,6 +4,7 @@ require 'nbayes'
 require 'mongo'
 
 REVIEW_CSV="reviews.csv"
+RESULT_CSV="result.csv"
 TRAIN="train/train_data/train_data.csv"
 TEST="train/test_data/test_data.csv"
 CATEGORIES=["camera","design","perform","general","misc"]

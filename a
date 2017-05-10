@@ -1,0 +1,85 @@
+require './env.rb'
+require './countTraindata.rb'
+start_time=Time.now
+#get value of row and column
+def getValue category
+  case category
+  when "camera"
+    return 0
+  when "design"
+    return 1
+  when "perform"
+    return 2
+  when "general"
+    return 3
+  when "misc"
+    return 4
+  end
+end
+#sum of row and col funtions
+def rowsum a,row
+  sum=0
+  0.upto(4){|i| sum+=a[row][i]}
+  return sum.to_f
+end
+
+def colsum a,col
+  sum=0
+  0.upto(4){|i| sum+=a[i][col]}
+  return sum.to_f
+end
+
+#precision and recall functions and fmeasure
+def precision category,a
+  x=getValue category
+  y=getValue category
+  return a[x][y]/colsum(a,y).to_f
+end
+
+def recall category,a
+  x=getValue category
+  y=getValue category
+  return a[x][y]/rowsum(a,x).to_f
+end
+
+def fmeasure category,a
+  p=precision(category,a)
+  r=recall(category,a)
+  return 2*p*r/(p+r)
+end
+
+#accuracy
+def accuracy a,sum
+  tp=0
+  0.upto(4){|i| tp+=a[i][i]}
+  return tp/sum.to_f*100
+end
+
+def trainModel
+  #train the nb model
+  @nbayes = NBayes::Base.new
+  file=IO.readlines(TRAIN)
+  file.each do |line|
+    data=line.split("\t")
+    sentence=data[3].to_s
+    @nbayes.train(sentence.split(/\s+/), data[0].to_s)
+  end
+end
+
+def classify
+  result_file=File.open(RESULT_CSV,'a')
+  file=IO.readlines(REVIEW_CSV)
+  trainModel
+  file.each do |line|
+    data=line.split("\t")
+    sentence=data[REVIEW_DATA_INDEX].to_s
+    tokens=sentence.split(/\s+/)
+    result=@nbayes.classify(tokens)
+    data.unshift(result.max_class.to_s)
+    0.upto(4).each{|i| result_file.print("#{data[i]}\t")}
+    result_file. print("#{data[5]}")
+  end
+end
+
+classify
+p Time.now-start_time
