@@ -134,19 +134,19 @@ def classifytoMongo
   start=Time.now
   @client=Mongo::Client.new([ MONGO_ADD ], :database => MONGO_DB)
   db=@client.database
-  collection=@client[:reviews2]
+  collection=@client[:reviews]
   result_file=File.open(RESULT_CSV,'a')
   trainModel
   file=IO.readlines(REVIEW_CSV)
-  file[1..2].each do |line|
+  file.each do |line|
     data=line.split("\t")
     sentence=data[REVIEW_DATA_INDEX].to_s
     tokens=sentence.split(/\s+/)
     result=@nbayes.classify(tokens)
     data.unshift(result.max_class)
-    doc={_id:data[4],host:data[1],type:data[0],url:data[2],review:data[3],content:data[5]}
+    doc={_id:data[4],host:data[1],type:data[0],url:data[2],review:data[3],tstamp:data[5]}
     result= collection.insert_one(doc)
   end
   p "Finished in:#{Time.now-start}s"
 end
-classifytoText
+classifytoMongo

@@ -2,8 +2,8 @@
 require './env.rb'
 
 def getAllreview
-  response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => 13964, :fl => 'host,id,review,digest,content', :wt => 'csv', 'csv.separator'.intern => 9.chr }
-  File.write(REVIEW_CSV, response[30..-1])
+  response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => 13964, :fl => 'host,id,review,digest,tstamp', :wt => 'csv', 'csv.separator'.intern => 9.chr }
+  File.write(REVIEW_CSV, response[29..-1])
   print "All review has been extracted to #{REVIEW_CSV}\n"
   print "------------------\n"
 end
