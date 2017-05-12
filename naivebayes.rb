@@ -4,11 +4,11 @@ require './countTraindata.rb'
 #getdata from solr
 def getAllreview
   count=Hash.new(0)
-  response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => ALL, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
-  File.write(REVIEW_CSV, response)
+  @response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => ALL, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
+  File.write(REVIEW_CSV, @response)
   print "All review has been extracted to #{REVIEW_CSV}\n"
   print "------------------\n"
-  response["response"]["docs"].each do |review|
+  @response["response"]["docs"].each do |review|
     count[review['host'].intern]+=1
     count[:total]+=1
   end
@@ -145,24 +145,68 @@ def classifytoText
   print "Finished in: #{Time.now-start_time.round(2)}s\n"
 end
 
+#TINHTE_DATA_HANDLE
+#popular
+def getTinhtepopular p
+  begin
+    p.gsub!(".","").split(/\s+/).last.gsub!(",","")
+  rescue
+    0
+  end
+end
+#tag
+def getTinhtetag t
+  begin
+    t.split("|")
+  rescue
+    []
+  end
+end
+#published_date
+def getPublisheddate d
+  begin
+    Time.parse(d)
+  rescue
+    ""
+  end
+end
+
+def prepareData doc
+  case doc['host']
+  when "tinhte.vn"
+    doc['popular']=getTinhtepopular doc['popular']
+    doc['tag']=getTinhtetag doc['tag']
+    doc['published_date']=getPublisheddate doc['published_date']
+  else
+    #todo
+  end
+end
+
+
 def classifytoMongo
   start=Time.now
-  client=Mongo::Client.new([ 'master:27017' ], :database => 'test')
-  collection=client[:reviews512]
-  p client 
-  p collection
+  client=Mongo::Client.new([ 'localhost:27017' ], :database => 'test')
+  collection=client[:reviews5124]
   result_file=File.open(RESULT_CSV,'a')
   @response['response']['docs'].each do |doc|
-    tokens=doc['review'].gsub!("\n", " ").split(/\s+/)
+    begin
+      tokens=doc['review'].gsub!("\n", " ").split(/\s+/)
+    rescue
+      tokens=Array.new(0)
+    end
     result=@nbayes.classify(tokens)
+    prepareData doc
     output={_id:doc['digest'],title:doc['title'],host:doc['host'],type:result.max_class,url:doc['url'],review:doc['review'],published_date:doc['published_date'],tag:doc['tag'],popular:doc['popular']}
     result=collection.insert_one(output)
   end
-  p "Finished in:#{Time.now-start}s"
+  p "Finished in:#{(Time.now-start).round(2)}s"
 end
+
 
 countTraindata
 countTestdata
 trainModel
 testModel
+getAllreview
 classifytoMongo
+

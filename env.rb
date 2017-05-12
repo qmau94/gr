@@ -2,8 +2,9 @@ require 'rsolr'
 require 'open-uri'
 require 'nbayes'
 require 'mongo'
+require 'time'
 
-ALL=10580
+ALL=3985
 REVIEW_CSV="reviews.csv"
 RESULT_CSV="result.csv"
 TRAIN="train/train_data/train_data.csv"
