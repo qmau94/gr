@@ -145,28 +145,24 @@ def classifytoText
   print "Finished in: #{Time.now-start_time.round(2)}s\n"
 end
 
-
 def classifytoMongo
   start=Time.now
-  @client=Mongo::Client.new([ MONGO_ADD ], :database => MONGO_DB)
-  db=@client.database
-  collection=@client[:reviews]
+  client=Mongo::Client.new([ 'master:27017' ], :database => 'test')
+  collection=client[:reviews512]
+  p client 
+  p collection
   result_file=File.open(RESULT_CSV,'a')
-  trainModel
-  file=IO.readlines(REVIEW_CSV)
-  file.each do |line|
-    data=line.split("\t")
-    sentence=data[REVIEW_DATA_INDEX].to_s
-    tokens=sentence.split(/\s+/)
+  @response['response']['docs'].each do |doc|
+    tokens=doc['review'].gsub!("\n", " ").split(/\s+/)
     result=@nbayes.classify(tokens)
-    data.unshift(result.max_class)
-    doc={_id:data[4],host:data[1],type:data[0],url:data[2],review:data[3],tstamp:data[5]}
-    result= collection.insert_one(doc)
+    output={_id:doc['digest'],title:doc['title'],host:doc['host'],type:result.max_class,url:doc['url'],review:doc['review'],published_date:doc['published_date'],tag:doc['tag'],popular:doc['popular']}
+    result=collection.insert_one(output)
   end
   p "Finished in:#{Time.now-start}s"
 end
+
 countTraindata
 countTestdata
 trainModel
 testModel
-
+classifytoMongo

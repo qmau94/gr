@@ -1,9 +1,10 @@
 require './env.rb'
+require 'pp'
 
 def getAllreview
   count=Hash.new(0)
   response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => ALL, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
-  File.write(REVIEW_CSV, response)
+  File.open(REVIEW_CSV, 'w')
   print "All review has been extracted to #{REVIEW_CSV}\n"
   print "------------------\n"
   response["response"]["docs"].each do |review|
