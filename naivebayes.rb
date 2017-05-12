@@ -1,6 +1,21 @@
 require './env.rb'
 require './countTraindata.rb'
 
+#getdata from solr
+def getAllreview
+  count=Hash.new(0)
+  response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => ALL, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
+  File.write(REVIEW_CSV, response)
+  print "All review has been extracted to #{REVIEW_CSV}\n"
+  print "------------------\n"
+  response["response"]["docs"].each do |review|
+    count[review['host'].intern]+=1
+    count[:total]+=1
+  end
+  count.each{|v,k| print "#{v}\t#{k}\n"}
+  print "------------------\n"
+end
+
 #get value of row and column
 def getValue category
   case category
@@ -16,6 +31,7 @@ def getValue category
     return 4
   end
 end
+
 #sum of row and col funtions
 def rowsum a,row
   sum=0
@@ -149,4 +165,8 @@ def classifytoMongo
   end
   p "Finished in:#{Time.now-start}s"
 end
-classifytoMongo
+countTraindata
+countTestdata
+trainModel
+testModel
+
