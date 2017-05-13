@@ -3,6 +3,7 @@ require 'open-uri'
 require 'nbayes'
 require 'mongo'
 require 'time'
+require 'nokogiri'
 
 ALL=3985
 REVIEW_CSV="reviews.csv"

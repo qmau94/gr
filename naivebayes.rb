@@ -4,7 +4,7 @@ require './countTraindata.rb'
 #getdata from solr
 def getAllreview
   count=Hash.new(0)
-  @response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => ALL, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
+  @response = SOLR.get 'select', :params => {:q => '*:*',:start => 0, :rows => 100, :fl => 'url,title,review,host,digest,tag,published_date,popular', :wt => 'ruby'}
   File.write(REVIEW_CSV, @response)
   print "All review has been extracted to #{REVIEW_CSV}\n"
   print "------------------\n"
@@ -149,7 +149,7 @@ end
 #popular
 def getTinhtepopular p
   begin
-    p.gsub!(".","").split(/\s+/).last.gsub!(",","")
+    return p.gsub!(".","").split(/\s+/).last.gsub!(",","")
   rescue
     0
   end
@@ -171,12 +171,18 @@ def getPublisheddate d
   end
 end
 
+def getRawhtml url
+  page=Nokogiri::HTML(open(url))
+  return page.css(".uix_discussionAuthor .baseHtml").to_html
+end
+
 def prepareData doc
   case doc['host']
   when "tinhte.vn"
     doc['popular']=getTinhtepopular doc['popular']
     doc['tag']=getTinhtetag doc['tag']
     doc['published_date']=getPublisheddate doc['published_date']
+    doc['content']=getRawhtml doc['url']
   else
     #todo
   end
@@ -186,7 +192,7 @@ end
 def classifytoMongo
   start=Time.now
   client=Mongo::Client.new([ 'localhost:27017' ], :database => 'test')
-  collection=client[:reviews5124]
+  collection=client[:reviews513]
   result_file=File.open(RESULT_CSV,'a')
   @response['response']['docs'].each do |doc|
     begin
@@ -196,8 +202,12 @@ def classifytoMongo
     end
     result=@nbayes.classify(tokens)
     prepareData doc
-    output={_id:doc['digest'],title:doc['title'],host:doc['host'],type:result.max_class,url:doc['url'],review:doc['review'],published_date:doc['published_date'],tag:doc['tag'],popular:doc['popular']}
-    result=collection.insert_one(output)
+    output={_id:doc['digest'],title:doc['title'],host:doc['host'],type:result.max_class,url:doc['url'],review:doc['review'],published_date:doc['published_date'],tag:doc['tag'],popular:doc['popular'],content:doc['content']}
+    begin
+      collection.insert_one(output)
+    rescue => e
+      p e
+    end
   end
   p "Finished in:#{(Time.now-start).round(2)}s"
 end
