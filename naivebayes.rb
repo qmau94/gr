@@ -165,7 +165,7 @@ end
 #published_date
 def getPublisheddate d
   begin
-    Time.parse(d)
+    Time.strptime(d,"%d/%m/%Y"){|year| year + ( year <70 ? 2000: 1900) }
   rescue
     ""
   end
@@ -192,7 +192,7 @@ end
 def classifytoMongo
   start=Time.now
   client=Mongo::Client.new([ 'localhost:27017' ], :database => 'test')
-  collection=client[:reviews513]
+  collection=client[:reviews5131]
   result_file=File.open(RESULT_CSV,'a')
   @response['response']['docs'].each do |doc|
     begin
